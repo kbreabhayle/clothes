@@ -1,35 +1,45 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { X, Upload, Save, Trash2, Package, Tag, DollarSign, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, Save, Box, Tag, DollarSign, Image as ImageIcon, CheckCircle, Info, Trash2, Plus, Sparkles, Edit, RefreshCcw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useTheme } from '@/context/ThemeContext';
 
-export default function ProductEditor({ product = null, onSave, onCancel }) {
+export default function ProductEditor({ product, onSave, onCancel }) {
+    const { theme } = useTheme();
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
-        name: product?.name || '',
-        description: product?.description || '',
-        price: product?.price || '',
-        stock_quantity: product?.stock_quantity || 0,
-        category_id: product?.category_id || '',
-        image_url: product?.image_url || '',
-        status: product?.status || 'active'
+        name: '',
+        price: '',
+        category_id: '',
+        description: '',
+        image_url: '',
+        status: 'active',
+        stock: 0
     });
+    const [categories, setCategories] = useState([]);
+    const [activeTab, setActiveTab] = useState('essential'); // 'essential' or 'creative'
 
     useEffect(() => {
-        async function fetchCats() {
-            const { data } = await supabase.from('categories').select('*');
-            setCategories(data || []);
-            // Auto-select first category if empty and creating new
-            if (!formData.category_id && data?.length > 0) {
-                setFormData(prev => ({ ...prev, category_id: data[0].id }));
-            }
+        fetchCategories();
+        if (product) {
+            setFormData({
+                name: product.name || '',
+                price: product.price || '',
+                category_id: product.category_id || '',
+                description: product.description || '',
+                image_url: product.image_url || '',
+                status: product.status || 'active',
+                stock: product.stock || 0
+            });
         }
-        fetchCats();
-    }, []);
+    }, [product]);
+
+    const fetchCategories = async () => {
+        const { data } = await supabase.from('categories').select('*');
+        setCategories(data || []);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -50,192 +60,253 @@ export default function ProductEditor({ product = null, onSave, onCancel }) {
             }
             onSave();
         } catch (error) {
-            console.error('Save Error:', error);
-            alert('Operation Failed: ' + error.message);
+            console.error('Save failed:', error);
+            alert('Save failed: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `products/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('vault')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('vault')
+                .getPublicUrl(filePath);
+
+            setFormData({ ...formData, image_url: publicUrl });
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8"
-        >
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
             <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className="max-w-4xl w-full bg-[#0a0a0a] border border-white/10 rounded-smooth overflow-hidden shadow-2xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-background/80 backdrop-blur-md"
+                onClick={onCancel}
+            />
+
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-background border border-foreground/10 rounded-smooth shadow-luxury scrollbar-hide relative z-[101] transition-colors duration-500"
             >
-                <div className="p-8 border-b border-white/5 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-[11px] font-black tracking-[0.4em] uppercase text-white">
-                            {product ? 'Modify Resource' : 'Register Manifest'}
-                        </h2>
-                        <p className="text-[8px] font-bold tracking-[0.2em] text-white/20 uppercase mt-1">
-                            Atelier / Product Inventory Protocol
-                        </p>
+                {/* Header */}
+                <div className="p-6 md:p-8 border-b border-foreground/5 flex justify-between items-center sticky top-0 bg-background/90 backdrop-blur-md z-10 transition-colors duration-500">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center shadow-luxury">
+                            {product ? <Edit size={18} strokeWidth={3} /> : <Plus size={18} strokeWidth={3} />}
+                        </div>
+                        <div>
+                            <h2 className="text-[10px] font-black tracking-[0.4em] uppercase text-foreground">
+                                {product ? 'Update Manifest' : 'Register Resource'}
+                            </h2>
+                            <p className="text-[8px] font-bold tracking-[0.2em] text-foreground/30 uppercase mt-1">Atelier Resource Database</p>
+                        </div>
                     </div>
-                    <button onClick={onCancel} className="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all">
+                    <button onClick={onCancel} className="p-2 hover:bg-foreground/5 rounded-full transition-colors text-foreground/40 hover:text-foreground">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        {/* Column 1: Core Specs */}
-                        <div className="space-y-8">
-                            <div className="space-y-3">
-                                <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                    <Package size={10} /> Nomenclature
-                                </label>
-                                <input
-                                    required
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Midnight Velvet Blazer..."
-                                    className="w-full bg-white/5 border border-white/10 p-5 rounded-sm text-[11px] tracking-widest outline-none focus:border-white transition-all text-white placeholder:text-white/10"
-                                />
-                            </div>
+                <form onSubmit={handleSubmit} className="p-6 md:p-12 space-y-12 transition-colors duration-500">
+                    {/* Mode Toggle */}
+                    <div className="flex border-b border-foreground/5 pb-8 overflow-x-auto no-scrollbar">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('essential')}
+                            className={`px-8 py-2 text-[9px] font-black tracking-widest uppercase transition-all whitespace-nowrap ${activeTab === 'essential' ? 'text-foreground' : 'text-foreground/20 hover:text-foreground/40'}`}
+                        >
+                            Essential Specs
+                            {activeTab === 'essential' && <motion.div layoutId="tab-underline" className="h-0.5 bg-foreground mt-2" />}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('creative')}
+                            className={`px-8 py-2 text-[9px] font-black tracking-widest uppercase transition-all whitespace-nowrap ${activeTab === 'creative' ? 'text-foreground' : 'text-foreground/20 hover:text-foreground/40'}`}
+                        >
+                            Creative Identity
+                            {activeTab === 'creative' && <motion.div layoutId="tab-underline" className="h-0.5 bg-foreground mt-2" />}
+                        </button>
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                        <DollarSign size={10} /> Valuation
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'essential' ? (
+                            <motion.div
+                                key="essential"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12"
+                            >
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <Tag size={10} /> Designation
                                     </label>
                                     <input
-                                        type="number"
-                                        step="0.01"
                                         required
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[11px] tracking-widest outline-none focus:border-accent transition-all text-foreground placeholder:text-foreground/10"
+                                        placeholder="RESOURCE NAME..."
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <DollarSign size={10} /> Valuation (USD)
+                                    </label>
+                                    <input
+                                        required
+                                        type="number"
                                         value={formData.price}
                                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 p-5 rounded-sm text-[13px] font-black outline-none focus:border-white transition-all text-white"
+                                        className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[11px] font-black tracking-widest outline-none focus:border-accent transition-all text-foreground"
+                                        placeholder="0.00"
                                     />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                        <Tag size={10} /> Classification
+
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <Box size={10} /> Classification
                                     </label>
-                                    <select
-                                        value={formData.category_id}
-                                        onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 p-5 rounded-sm text-[10px] font-black tracking-widest outline-none focus:border-white transition-all text-white uppercase appearance-none"
-                                    >
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                    <Info size={10} /> Product Brief
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 p-5 rounded-sm text-[11px] tracking-widest outline-none focus:border-white transition-all text-white resize-none"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Column 2: Media & Status */}
-                        <div className="space-y-8">
-                            <div className="space-y-3">
-                                <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                    <Upload size={10} /> Product Image
-                                </label>
-
-                                {/* File Upload Zone */}
-                                <label className={`block aspect-[4/5] bg-white/[0.02] border border-dashed rounded-sm overflow-hidden cursor-pointer hover:border-white/30 transition-all group relative ${uploading ? 'border-white/40 animate-pulse' : 'border-white/10'}`}>
-                                    {formData.image_url ? (
-                                        <img src={formData.image_url} className="w-full h-full object-cover" alt="Preview" />
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-center">
-                                            <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-white/20 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                                <Upload size={20} />
-                                            </div>
-                                            <p className="text-[9px] font-black tracking-widest text-white/20 uppercase group-hover:text-white/40 transition-colors">
-                                                {uploading ? 'Uploading...' : 'Click to Upload Image'}
-                                            </p>
-                                            <p className="text-[8px] text-white/10 tracking-wider uppercase mt-2">JPG, PNG, WebP</p>
-                                        </div>
-                                    )}
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        disabled={uploading}
-                                        onChange={async (e) => {
-                                            const file = e.target.files[0];
-                                            if (!file) return;
-                                            setUploading(true);
-                                            try {
-                                                const fileName = `product-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-                                                const { error: uploadError } = await supabase.storage
-                                                    .from('product-images')
-                                                    .upload(fileName, file);
-                                                if (uploadError) throw uploadError;
-                                                const { data: { publicUrl } } = supabase.storage
-                                                    .from('product-images')
-                                                    .getPublicUrl(fileName);
-                                                setFormData(prev => ({ ...prev, image_url: publicUrl }));
-                                            } catch (err) {
-                                                console.error('Upload failed:', err);
-                                                alert('Image upload failed: ' + err.message);
-                                            } finally {
-                                                setUploading(false);
-                                            }
-                                        }}
-                                    />
-                                    {formData.image_url && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFormData(prev => ({ ...prev, image_url: '' })); }}
-                                            className="absolute top-3 right-3 p-2 bg-black/60 rounded-full text-white/60 hover:text-white hover:bg-black transition-all"
+                                    <div className="relative">
+                                        <select
+                                            required
+                                            value={formData.category_id}
+                                            onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                            className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[10px] font-black tracking-widest outline-none focus:border-accent transition-all text-foreground uppercase appearance-none"
                                         >
-                                            <X size={14} />
-                                        </button>
-                                    )}
-                                </label>
-
-                                {/* Or paste URL */}
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-1 h-[1px] bg-white/5" />
-                                    <span className="text-[8px] text-white/15 uppercase tracking-widest">or paste url</span>
-                                    <div className="flex-1 h-[1px] bg-white/5" />
+                                            <option value="">Select Domain</option>
+                                            {categories.map(c => (
+                                                <option key={c.id} value={c.id} className="bg-background text-foreground">{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-                                <input
-                                    value={formData.image_url}
-                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-sm text-[9px] tracking-wider outline-none focus:border-white transition-all text-white font-mono"
-                                    placeholder="https://..."
-                                />
-                            </div>
 
-                            <div className="flex gap-12 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={onCancel}
-                                    className="flex-1 border border-white/10 text-white/40 py-5 text-[9px] font-black tracking-[0.3em] uppercase hover:text-white transition-all"
-                                >
-                                    Terminate
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 bg-white text-black py-5 text-[9px] font-black tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:tracking-[0.5em] transition-all disabled:opacity-50"
-                                >
-                                    {loading ? 'Processing...' : <><Save size={14} /> Commit</>}
-                                </button>
-                            </div>
-                        </div>
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <Info size={10} /> Operational State
+                                    </label>
+                                    <div className="flex gap-4">
+                                        {['active', 'archived'].map((status) => (
+                                            <button
+                                                key={status}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, status })}
+                                                className={`flex-1 py-4 text-[9px] font-black tracking-widest uppercase border rounded-sm transition-all ${formData.status === status ? 'bg-foreground text-background border-foreground' : 'bg-transparent border-foreground/10 text-foreground/40 hover:border-foreground/30'}`}
+                                            >
+                                                {status}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="creative"
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="space-y-12"
+                            >
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <ImageIcon size={10} /> Visual Signature
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <div
+                                                onClick={() => document.getElementById('image-upload').click()}
+                                                className="aspect-video bg-foreground/5 border border-foreground/10 border-dashed rounded-smooth flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-foreground/10 transition-all group overflow-hidden relative"
+                                            >
+                                                {formData.image_url ? (
+                                                    <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <>
+                                                        <ImageIcon size={24} className="text-foreground/20 group-hover:scale-110 transition-transform" />
+                                                        <span className="text-[8px] font-black tracking-widest text-foreground/40">Transmit Image Data</span>
+                                                    </>
+                                                )}
+                                                <input id="image-upload" type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                                            </div>
+                                            <p className="text-[7px] font-black tracking-widest text-foreground/20 uppercase text-center">Supported: JPG, PNG, WEBP (MAX 5MB)</p>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <p className="text-[8px] font-black tracking-[0.2em] text-foreground/40 uppercase leading-relaxed italic border-l border-foreground/10 pl-4 py-2">
+                                                Visual data should minimize noise and maximize product clarity for the Atelier interface. 4:5 aspect ratio recommended.
+                                            </p>
+                                            <input
+                                                value={formData.image_url}
+                                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                                className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[10px] tracking-widest outline-none focus:border-accent transition-all text-foreground placeholder:text-foreground/10"
+                                                placeholder="OR INPUT EXTERNAL URL..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <Sparkles size={10} /> Aesthetic Description
+                                    </label>
+                                    <textarea
+                                        rows={4}
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[11px] tracking-widest outline-none focus:border-accent transition-all text-foreground placeholder:text-foreground/10 resize-none"
+                                        placeholder="DEFINE COLOR, TEXTURE, AND FEEL..."
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Footer Actions */}
+                    <div className="flex flex-col md:flex-row justify-end gap-4 md:gap-6 pt-8 border-t border-foreground/5">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="w-full md:w-auto px-10 py-5 text-[9px] font-black tracking-[0.3em] uppercase text-foreground/40 hover:text-foreground transition-all"
+                        >
+                            Abort Changes
+                        </button>
+                        <button
+                            disabled={loading}
+                            type="submit"
+                            className="w-full md:w-auto bg-foreground text-background px-12 py-5 text-[9px] font-black tracking-[0.4em] uppercase flex items-center justify-center gap-4 hover:tracking-[0.6em] transition-all duration-700 shadow-luxury disabled:opacity-50"
+                        >
+                            {loading ? <RefreshCcw size={14} className="animate-spin" /> : (
+                                <>
+                                    Commit Resource <Save size={14} strokeWidth={3} />
+                                </>
+                            )}
+                        </button>
                     </div>
                 </form>
             </motion.div>
-        </motion.div>
+        </div>
     );
 }
