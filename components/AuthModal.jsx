@@ -42,7 +42,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         {/* Static Backdrop */}
                         <div
                             onClick={onClose}
-                            className="absolute inset-0 bg-black/90 cursor-pointer"
+                            className="absolute inset-0 bg-background/80 backdrop-blur-sm cursor-pointer"
                         />
 
                         <motion.div
@@ -50,20 +50,20 @@ export default function AuthModal({ isOpen, onClose }) {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
                             transition={{ duration: 0.15 }}
-                            className="relative w-full max-w-sm bg-black border border-white/10 p-8 shadow-2xl"
+                            className="relative w-full max-w-sm bg-background border border-foreground/10 p-8 shadow-2xl rounded-sm"
                         >
                             <button
                                 onClick={onClose}
-                                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                                className="absolute top-6 right-6 text-foreground/40 hover:text-foreground transition-colors"
                             >
                                 <X size={18} />
                             </button>
 
                             <div className="mb-8">
-                                <h2 className="text-xl font-bold tracking-tight uppercase text-white">
+                                <h2 className="text-xl font-bold tracking-tight uppercase text-foreground">
                                     {mode === 'login' ? 'SIGN IN' : 'REGISTER'}
                                 </h2>
-                                <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mt-1">
+                                <p className="text-[11px] font-bold text-foreground/30 uppercase tracking-widest mt-1">
                                     StyleVault Account access
                                 </p>
                             </div>
@@ -71,24 +71,24 @@ export default function AuthModal({ isOpen, onClose }) {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-white/40">Email Address</label>
+                                        <label className="text-[10px] font-bold uppercase text-foreground/40">Email Address</label>
                                         <input
                                             type="email"
                                             required
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value.toLowerCase())}
-                                            className="w-full bg-white/5 border border-white/10 p-3 text-[12px] outline-none focus:border-white transition-all text-white"
+                                            className="w-full bg-foreground/5 border border-foreground/10 p-3 text-[12px] outline-none focus:border-foreground transition-all text-foreground"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-white/40">Password</label>
+                                        <label className="text-[10px] font-bold uppercase text-foreground/40">Password</label>
                                         <input
                                             type="password"
                                             required
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/10 p-3 text-[12px] outline-none focus:border-white transition-all text-white"
+                                            className="w-full bg-foreground/5 border border-foreground/10 p-3 text-[12px] outline-none focus:border-foreground transition-all text-foreground"
                                         />
                                     </div>
                                 </div>
@@ -96,7 +96,7 @@ export default function AuthModal({ isOpen, onClose }) {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-white text-black py-4 text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center justify-center gap-2"
+                                    className="w-full bg-foreground text-background py-4 text-[11px] font-black uppercase tracking-widest hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 rounded-sm"
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={14} /> : (
                                         mode === 'login' ? 'CONTINUE' : 'CREATE ACCOUNT'
@@ -104,10 +104,10 @@ export default function AuthModal({ isOpen, onClose }) {
                                 </button>
                             </form>
 
-                            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                            <div className="mt-8 pt-6 border-t border-foreground/5 text-center">
                                 <button
                                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                                    className="text-[10px] font-bold uppercase text-white/40 hover:text-white transition-colors"
+                                    className="text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground transition-colors"
                                 >
                                     {mode === 'login' ? "New client? Create account" : "Already registered? Sign in"}
                                 </button>
@@ -115,6 +115,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         </motion.div>
                     </>
                 )}
+
             </AnimatePresence>
         </div>
     );

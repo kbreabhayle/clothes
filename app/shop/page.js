@@ -7,7 +7,7 @@ export default function ShopPage() {
         <main className="min-h-screen pt-24">
             <Navbar />
             <div className="container-custom py-12">
-                <h1 className="text-4xl font-heading font-black tracking-tight mb-8">SHOP ALL</h1>
+                <h1 className="text-xl font-bold tracking-tight text-white mb-6 uppercase">Shop All</h1>
                 <ProductGrid />
             </div>
             <Footer />

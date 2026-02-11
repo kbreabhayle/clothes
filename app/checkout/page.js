@@ -29,29 +29,29 @@ export default function CheckoutPage() {
         return () => subscription.unsubscribe();
     }, []);
 
-    if (user === undefined) return <div className="min-h-screen bg-black" />; // Loading state
+    if (user === undefined) return <div className="min-h-screen bg-background" />; // Loading state
 
     if (user === null) {
         return (
             <main className="min-h-screen pt-24 bg-background flex items-center justify-center p-8">
                 <Navbar />
                 <div className="max-w-md w-full text-center space-y-8">
-                    <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto text-white/40">
+                    <div className="w-16 h-16 bg-foreground/5 border border-foreground/10 rounded-full flex items-center justify-center mx-auto text-foreground/40">
                         <ShieldAlert size={28} strokeWidth={1} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-heading font-thin tracking-tighter text-white mb-4 uppercase">Identity Required</h1>
-                        <p className="text-[10px] text-white/30 tracking-widest uppercase leading-loose">
+                        <h1 className="text-3xl font-heading font-thin tracking-tighter text-foreground mb-4 uppercase">Identity Required</h1>
+                        <p className="text-[10px] text-foreground/30 tracking-widest uppercase leading-loose">
                             You must initialize your client profile to access the secure acquisition portal.
                         </p>
                     </div>
                     <button
                         onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
-                        className="w-full bg-white text-black py-5 text-[9px] font-black tracking-[0.4em] uppercase hover:tracking-[0.6em] transition-all duration-700"
+                        className="w-full bg-foreground text-background py-5 text-[9px] font-black tracking-[0.4em] uppercase hover:tracking-[0.6em] transition-all duration-700"
                     >
                         Sign In / Register
                     </button>
-                    <Link href="/shop" className="block text-[8px] font-bold text-white/20 uppercase tracking-[0.3em] hover:text-white transition-colors">
+                    <Link href="/shop" className="block text-[8px] font-bold text-foreground/20 uppercase tracking-[0.3em] hover:text-foreground transition-colors">
                         Return to Gallery
                     </Link>
                 </div>
@@ -125,54 +125,56 @@ export default function CheckoutPage() {
     return (
         <main className="min-h-screen pt-24 bg-background">
             <Navbar />
-            <section className="container-custom py-24">
+            <section className="container-custom py-12 md:py-24">
                 <div className="max-w-5xl mx-auto">
                     {/* Cinematic Header */}
-                    <div className="mb-20">
+                    <div className="mb-12 md:mb-20">
                         <motion.span
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/30 mb-4 block"
+                            className="text-[9px] md:text-[10px] font-bold tracking-[0.4em] uppercase text-foreground/30 mb-3 md:mb-4 block"
                         >
                             Checkout Protocol
                         </motion.span>
                         <motion.h1
                             initial={{ opacity: 0, filter: "blur(10px)", y: 20 }}
                             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                            className="text-5xl md:text-7xl font-heading font-thin tracking-tighter text-white"
+                            className="text-2xl sm:text-5xl md:text-7xl font-heading font-thin tracking-tighter text-foreground leading-[1.1]"
                         >
+
                             SECURE <span className="font-black italic">ACQUISITION</span>
                         </motion.h1>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="flex justify-between mb-24 relative">
-                        <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-white/5 -translate-y-1/2 z-0" />
+                    <div className="flex justify-between mb-16 md:mb-24 relative px-2 md:px-0">
+                        <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-foreground/5 -translate-y-1/2 z-0" />
                         {steps.map((s, i) => (
                             <div key={s} className="relative z-10 flex flex-col items-center">
                                 <motion.div
                                     initial={false}
                                     animate={{
-                                        backgroundColor: step > i + 1 ? "#ffffff" : step === i + 1 ? "rgba(255,255,255,0.05)" : "transparent",
-                                        borderColor: step >= i + 1 ? "#ffffff" : "rgba(255,255,255,0.1)"
+                                        backgroundColor: step > i + 1 ? "var(--foreground)" : step === i + 1 ? "var(--secondary)" : "transparent",
+                                        borderColor: step >= i + 1 ? "var(--foreground)" : "var(--foreground-muted, rgba(128,128,128,0.2))"
                                     }}
-                                    className="w-10 h-10 rounded-full flex items-center justify-center border transition-colors duration-700"
+                                    className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border transition-colors duration-700"
                                 >
                                     {step > i + 1 ? (
-                                        <Check size={16} className="text-black" />
+                                        <Check size={14} className="text-background" />
                                     ) : (
-                                        <span className={`text-[10px] font-black ${step === i + 1 ? 'text-white' : 'text-white/20'}`}>
+                                        <span className={`text-[9px] md:text-[10px] font-black ${step === i + 1 ? 'text-foreground' : 'text-foreground/20'}`}>
                                             {i + 1}
                                         </span>
                                     )}
                                 </motion.div>
-                                <span className={`text-[8px] font-black tracking-[0.3em] uppercase mt-5 transition-colors duration-700 ${step === i + 1 ? 'text-white' : 'text-white/20'
+                                <span className={`text-[7px] md:text-[8px] font-black tracking-[0.2em] md:tracking-[0.3em] uppercase mt-4 md:mt-5 transition-colors duration-700 ${step === i + 1 ? 'text-foreground' : 'text-foreground/20'
                                     }`}>
                                     {s}
                                 </span>
                             </div>
                         ))}
                     </div>
+
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-20">
                         <div className="lg:col-span-2">
@@ -185,21 +187,21 @@ export default function CheckoutPage() {
                                         exit={{ opacity: 0, y: -20 }}
                                         className="space-y-10"
                                     >
-                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-white/50 border-b border-white/5 pb-6">Vault Review</h2>
+                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-foreground/50 border-b border-foreground/5 pb-6">Vault Review</h2>
                                         {cart.length === 0 ? (
-                                            <div className="text-center py-16 text-white/20 text-[10px] tracking-widest uppercase">Your vault is empty</div>
+                                            <div className="text-center py-16 text-foreground/20 text-[10px] tracking-widest uppercase">Your vault is empty</div>
                                         ) : cart.map(item => (
-                                            <div key={item.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-smooth flex gap-8 group hover:border-white/20 transition-all duration-700">
+                                            <div key={item.id} className="bg-foreground/[0.02] border border-foreground/5 p-8 rounded-smooth flex gap-8 group hover:border-foreground/20 transition-all duration-700">
                                                 <div className="w-24 h-32 bg-secondary relative overflow-hidden rounded-sm">
                                                     {item.image_url && <Image src={item.image_url} alt={item.name} fill className="object-cover" sizes="96px" />}
                                                     <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">{item.name}</h3>
-                                                    <p className="text-[10px] text-white/30 tracking-widest mt-2 uppercase">{item.description?.slice(0, 40) || 'StyleVault Exclusive'}</p>
+                                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">{item.name}</h3>
+                                                    <p className="text-[10px] text-foreground/30 tracking-widest mt-2 uppercase">{item.description?.slice(0, 40) || 'StyleVault Exclusive'}</p>
                                                     <div className="mt-8 flex justify-between items-end">
-                                                        <p className="text-sm font-black text-white">${item.price?.toLocaleString()}</p>
-                                                        <span className="text-[8px] font-black tracking-[0.2em] text-white/20 uppercase">Qty: {String(item.quantity).padStart(2, '0')}</span>
+                                                        <p className="text-sm font-black text-foreground">${item.price?.toLocaleString()}</p>
+                                                        <span className="text-[8px] font-black tracking-[0.2em] text-foreground/20 uppercase">Qty: {String(item.quantity).padStart(2, '0')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -215,27 +217,27 @@ export default function CheckoutPage() {
                                         exit={{ opacity: 0, y: -20 }}
                                         className="space-y-12"
                                     >
-                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-white/50 border-b border-white/5 pb-6">Distribution Protocol</h2>
+                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-foreground/50 border-b border-foreground/5 pb-6">Distribution Protocol</h2>
                                         <div className="grid grid-cols-2 gap-10">
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">Given Name</label>
-                                                <input placeholder="ENTRY DATA..." className="w-full bg-transparent border-b border-white/10 py-4 text-[10px] tracking-widest outline-none focus:border-white transition-all text-white uppercase" />
+                                                <label className="text-[9px] font-black tracking-widest text-foreground/20 uppercase">Given Name</label>
+                                                <input placeholder="ENTRY DATA..." className="w-full bg-transparent border-b border-foreground/10 py-4 text-[10px] tracking-widest outline-none focus:border-foreground transition-all text-foreground uppercase" />
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">Surname</label>
-                                                <input placeholder="ENTRY DATA..." className="w-full bg-transparent border-b border-white/10 py-4 text-[10px] tracking-widest outline-none focus:border-white transition-all text-white uppercase" />
+                                                <label className="text-[9px] font-black tracking-widest text-foreground/20 uppercase">Surname</label>
+                                                <input placeholder="ENTRY DATA..." className="w-full bg-transparent border-b border-foreground/10 py-4 text-[10px] tracking-widest outline-none focus:border-foreground transition-all text-foreground uppercase" />
                                             </div>
                                             <div className="col-span-2 space-y-3">
-                                                <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">Global Address</label>
-                                                <input placeholder="RESIDENCE / ATELIER..." className="w-full bg-transparent border-b border-white/10 py-4 text-[10px] tracking-widest outline-none focus:border-white transition-all text-white uppercase" />
+                                                <label className="text-[9px] font-black tracking-widest text-foreground/20 uppercase">Global Address</label>
+                                                <input placeholder="RESIDENCE / ATELIER..." className="w-full bg-transparent border-b border-foreground/10 py-4 text-[10px] tracking-widest outline-none focus:border-foreground transition-all text-foreground uppercase" />
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">City</label>
-                                                <input placeholder="LOCATION..." className="w-full bg-transparent border-b border-white/10 py-4 text-[10px] tracking-widest outline-none focus:border-white transition-all text-white uppercase" />
+                                                <label className="text-[9px] font-black tracking-widest text-foreground/20 uppercase">City</label>
+                                                <input placeholder="LOCATION..." className="w-full bg-transparent border-b border-foreground/10 py-4 text-[10px] tracking-widest outline-none focus:border-foreground transition-all text-foreground uppercase" />
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">Postal Index</label>
-                                                <input placeholder="ZONE CODE..." className="w-full bg-transparent border-b border-white/10 py-4 text-[10px] tracking-widest outline-none focus:border-white transition-all text-white uppercase" />
+                                                <label className="text-[9px] font-black tracking-widest text-foreground/20 uppercase">Postal Index</label>
+                                                <input placeholder="ZONE CODE..." className="w-full bg-transparent border-b border-foreground/10 py-4 text-[10px] tracking-widest outline-none focus:border-foreground transition-all text-foreground uppercase" />
                                             </div>
                                         </div>
                                     </motion.div>
@@ -249,7 +251,7 @@ export default function CheckoutPage() {
                                         exit={{ opacity: 0, y: -20 }}
                                         className="space-y-12"
                                     >
-                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-white/50 border-b border-white/5 pb-6">Payment Intelligence</h2>
+                                        <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-foreground/50 border-b border-foreground/5 pb-6">Payment Intelligence</h2>
 
                                         {/* Payment Method Selector */}
                                         <div className="grid grid-cols-2 gap-4">
@@ -258,8 +260,8 @@ export default function CheckoutPage() {
                                                     key={method}
                                                     onClick={() => setPaymentMethod(method)}
                                                     className={`py-6 border rounded-sm text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${paymentMethod === method
-                                                        ? 'bg-white text-black border-white'
-                                                        : 'bg-transparent text-white/40 border-white/10 hover:border-white/30 hover:text-white'
+                                                        ? 'bg-foreground text-background border-foreground'
+                                                        : 'bg-transparent text-foreground/40 border-foreground/10 hover:border-foreground/30 hover:text-foreground'
                                                         }`}
                                                 >
                                                     {method === 'CBE' ? 'COMMERCIAL BANK' : 'TELEBIRR WALLET'}
@@ -268,45 +270,45 @@ export default function CheckoutPage() {
                                         </div>
 
                                         {/* Payment Details */}
-                                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-sm space-y-6">
+                                        <div className="bg-foreground/[0.02] border border-foreground/5 p-8 rounded-sm space-y-6">
                                             <div className="flex items-center gap-4 mb-6">
-                                                <div className="p-3 bg-white/5 rounded-full text-white">
+                                                <div className="p-3 bg-foreground/5 rounded-full text-foreground">
                                                     {paymentMethod === 'CBE' ? <CreditCard size={20} /> : <Zap size={20} />}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
                                                         {paymentMethod === 'CBE' ? 'CBE Transfer Details' : 'Telebirr Merchant Info'}
                                                     </h3>
-                                                    <p className="text-[9px] text-white/30 tracking-widest uppercase mt-1">
+                                                    <p className="text-[9px] text-foreground/30 tracking-widest uppercase mt-1">
                                                         {paymentMethod === 'CBE' ? 'Direct Bank Deposit / Mobile Transfer' : 'Scan or Enter Mobile Number'}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
-                                                <div className="flex justify-between items-center p-4 bg-black border border-white/10 rounded-sm">
-                                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                                                <div className="flex justify-between items-center p-4 bg-secondary/30 border border-foreground/10 rounded-sm">
+                                                    <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">
                                                         {paymentMethod === 'CBE' ? 'Account Number' : 'Merchant ID'}
                                                     </span>
-                                                    <span className="text-[11px] font-mono text-white tracking-wider">
+                                                    <span className="text-[11px] font-mono text-foreground tracking-wider">
                                                         {paymentMethod === 'CBE' ? '1000123456789' : '556677'}
                                                     </span>
                                                 </div>
-                                                <div className="flex justify-between items-center p-4 bg-black border border-white/10 rounded-sm">
-                                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                                                <div className="flex justify-between items-center p-4 bg-secondary/30 border border-foreground/10 rounded-sm">
+                                                    <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">
                                                         {paymentMethod === 'CBE' ? 'Account Name' : 'Merchant Name'}
                                                     </span>
-                                                    <span className="text-[11px] font-bold text-white tracking-widest uppercase">
+                                                    <span className="text-[11px] font-bold text-foreground tracking-widest uppercase">
                                                         StyleVault Official
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-6 border-t border-white/5">
-                                                <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-4">
+                                            <div className="pt-6 border-t border-foreground/5">
+                                                <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest mb-4">
                                                     Proof of Transaction
                                                 </p>
-                                                <label className="flex flex-col items-center justify-center w-full h-32 border border-dashed border-white/20 rounded-sm cursor-pointer hover:border-white/40 hover:bg-white/[0.02] transition-all group">
+                                                <label className="flex flex-col items-center justify-center w-full h-32 border border-dashed border-foreground/20 rounded-sm cursor-pointer hover:border-foreground/40 hover:bg-foreground/[0.02] transition-all group">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         {paymentProof ? (
                                                             <div className="flex items-center gap-3 text-green-500">
@@ -315,8 +317,8 @@ export default function CheckoutPage() {
                                                             </div>
                                                         ) : (
                                                             <>
-                                                                <Upload size={24} className="text-white/20 mb-3 group-hover:text-white transition-colors" />
-                                                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Upload Screenshot</p>
+                                                                <Upload size={24} className="text-foreground/20 mb-3 group-hover:text-foreground transition-colors" />
+                                                                <p className="text-[9px] font-bold text-foreground/30 uppercase tracking-widest">Upload Screenshot</p>
                                                             </>
                                                         )}
                                                     </div>
@@ -343,20 +345,20 @@ export default function CheckoutPage() {
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1.2 }}
                                             transition={{ type: "spring", damping: 10 }}
-                                            className="w-24 h-24 bg-white/10 text-white rounded-full flex items-center justify-center mx-auto mb-12 border border-white/20"
+                                            className="w-24 h-24 bg-foreground/10 text-foreground rounded-full flex items-center justify-center mx-auto mb-12 border border-foreground/20"
                                         >
                                             <ShieldCheck size={40} strokeWidth={1.5} />
                                         </motion.div>
-                                        <h2 className="text-5xl md:text-6xl font-heading font-thin tracking-tighter text-white mb-6 uppercase">
+                                        <h2 className="text-5xl md:text-6xl font-heading font-thin tracking-tighter text-foreground mb-6 uppercase">
                                             VERIFICATION <br /><span className="font-black italic">PENDING</span>
                                         </h2>
-                                        <p className="text-white/30 text-[10px] tracking-[0.2em] font-medium uppercase max-w-sm mx-auto leading-loose">
+                                        <p className="text-foreground/30 text-[10px] tracking-[0.2em] font-medium uppercase max-w-sm mx-auto leading-loose">
                                             Payment proof received. Protocol awaiting administrative confirmation.
                                             <br />
                                             Reference: {orderRef || 'Processing...'}
                                         </p>
                                         <div className="mt-16">
-                                            <Link href="/shop" className="text-[9px] font-black tracking-[0.4em] uppercase text-white hover:tracking-[0.6em] transition-all duration-700 border-b border-white/10 pb-2">
+                                            <Link href="/shop" className="text-[9px] font-black tracking-[0.4em] uppercase text-foreground hover:tracking-[0.6em] transition-all duration-700 border-b border-foreground/10 pb-2">
                                                 Return to Gallery
                                             </Link>
                                         </div>
@@ -368,14 +370,14 @@ export default function CheckoutPage() {
                                 <div className="mt-24 flex justify-between">
                                     <button
                                         onClick={prevStep}
-                                        className={`flex items-center gap-4 text-[9px] font-black tracking-[0.3em] uppercase text-white/30 hover:text-white transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
+                                        className={`flex items-center gap-4 text-[9px] font-black tracking-[0.3em] uppercase text-foreground/30 hover:text-foreground transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
                                     >
                                         <ArrowLeft size={14} /> Intelligence
                                     </button>
                                     <button
                                         onClick={nextStep}
                                         disabled={isProcessing || (step === 3 && !paymentProof)}
-                                        className="group bg-white text-black px-12 py-5 text-[9px] font-black tracking-[0.3em] uppercase flex items-center gap-4 hover:tracking-[0.4em] transition-all duration-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="group bg-foreground text-background px-12 py-5 text-[9px] font-black tracking-[0.3em] uppercase flex items-center gap-4 hover:tracking-[0.4em] transition-all duration-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isProcessing ? 'Verifying...' : step === 3 ? 'Submit Proof' : 'Process Continuity'} <ArrowRight size={14} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
@@ -387,34 +389,34 @@ export default function CheckoutPage() {
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-white/[0.01] backdrop-blur-3xl p-12 rounded-smooth border border-white/5 h-fit sticky top-32"
+                            className="bg-foreground/[0.01] backdrop-blur-3xl p-12 rounded-smooth border border-foreground/5 h-fit sticky top-32"
                         >
-                            <h3 className="text-[10px] font-black tracking-[0.3em] uppercase mb-10 border-b border-white/5 pb-5 text-white/50">Summary Analysis</h3>
+                            <h3 className="text-[10px] font-black tracking-[0.3em] uppercase mb-10 border-b border-foreground/5 pb-5 text-foreground/50">Summary Analysis</h3>
                             <div className="space-y-6 mb-10">
-                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
+                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-foreground/30">
                                     <span>Valuation</span>
                                     <span>${cartTotal.toLocaleString()}</span>
                                 </div>
-                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
+                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-foreground/30">
                                     <span>Items</span>
                                     <span>{cart.reduce((a, i) => a + i.quantity, 0)}</span>
                                 </div>
-                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
+                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-foreground/30">
                                     <span>Logistics</span>
-                                    <span className="text-white font-black italic">Complimentary</span>
+                                    <span className="text-foreground font-black italic">Complimentary</span>
                                 </div>
                             </div>
-                            <div className="flex justify-between font-heading border-t border-white/10 pt-6">
-                                <span className="uppercase text-[9px] font-black tracking-[0.3em] text-white/50">Cumulative</span>
-                                <span className="text-2xl font-black text-white">${cartTotal.toLocaleString()}</span>
+                            <div className="flex justify-between font-heading border-t border-foreground/10 pt-6">
+                                <span className="uppercase text-[9px] font-black tracking-[0.3em] text-foreground/50">Cumulative</span>
+                                <span className="text-2xl font-black text-foreground">${cartTotal.toLocaleString()}</span>
                             </div>
 
                             <div className="mt-12 flex items-center gap-4 opacity-20 grayscale">
-                                <div className="p-2 border border-white/10 rounded-sm">
+                                <div className="p-2 border border-foreground/10 rounded-sm">
                                     <CreditCard size={18} />
                                 </div>
-                                <div className="flex-1 h-[1px] bg-white/10" />
-                                <div className="p-2 border border-white/10 rounded-sm">
+                                <div className="flex-1 h-[1px] bg-foreground/10" />
+                                <div className="p-2 border border-foreground/10 rounded-sm">
                                     <Truck size={18} />
                                 </div>
                             </div>

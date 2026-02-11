@@ -18,9 +18,9 @@ export default function ProductCard({ product }) {
     };
 
     return (
-        <div className="bg-[#0a0a0a] border border-white/5 transition-all duration-200">
+        <div className="bg-secondary border border-foreground/5 transition-all duration-200">
             {/* Image Container */}
-            <div className="relative aspect-[4/5] bg-black">
+            <div className="relative aspect-[4/5] bg-secondary/50">
                 <Image
                     src={product.image}
                     alt={product.name}
@@ -31,24 +31,24 @@ export default function ProductCard({ product }) {
             </div>
 
             {/* Product Content */}
-            <div className="p-4 space-y-4">
-                <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                        <h3 className="text-[11px] font-bold tracking-tight uppercase text-white truncate w-40">
-                            {product.name}
-                        </h3>
-                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">
+            <div className="p-4 space-y-3">
+                <div className="space-y-1">
+                    <h3 className="text-[11px] font-bold tracking-tight uppercase text-foreground truncate block">
+                        {product.name}
+                    </h3>
+                    <div className="flex justify-between items-center">
+                        <p className="text-[9px] font-bold text-foreground/30 uppercase tracking-wider">
                             {product.category}
                         </p>
+                        <span className="text-[11px] font-bold text-foreground">
+                            ${product.price}
+                        </span>
                     </div>
-                    <span className="text-[11px] font-bold text-white">
-                        ${product.price}
-                    </span>
                 </div>
 
                 <button
                     onClick={handleAction}
-                    className="w-full bg-white text-black py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all active:scale-[0.98]"
+                    className="w-full bg-foreground text-background py-3 text-[10px] font-black uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-[0.98]"
                 >
                     Add to Bag
                 </button>

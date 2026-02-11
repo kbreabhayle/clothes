@@ -9,18 +9,21 @@ const inter = Inter({
 });
 
 import { ToastProvider } from "@/context/ToastContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" data-theme="dark">
       <body
         className={`${inter.variable} antialiased`}
       >
-        <CartProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </CartProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
