@@ -377,17 +377,19 @@ export default function AdminDashboard() {
                                             className="bg-secondary border border-foreground/5 rounded-smooth overflow-hidden group transition-all duration-300 hover:border-foreground/20"
                                         >
                                             <div className="relative aspect-[4/5] bg-background overflow-hidden italic">
-                                                {p.image_url && <img src={p.image_url} className="w-full h-full object-cover opacity-60 transition-all duration-700 group-hover:scale-105 group-hover:opacity-80" alt={p.name} />}
-                                                <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+                                                {p.image_url && <img src={p.image_url} className="w-full h-full object-cover opacity-80" alt={p.name} />}
+                                                <div className="absolute top-4 right-4 flex gap-2 z-20">
                                                     <button
-                                                        onClick={() => { setEditingProduct(p); setShowEditor(true); }}
-                                                        className="p-3 bg-foreground text-background rounded-sm hover:scale-110 transition-all shadow-luxury"
+                                                        onClick={(e) => { e.stopPropagation(); setEditingProduct(p); setShowEditor(true); }}
+                                                        className="p-3 bg-foreground text-background rounded-sm hover:scale-110 active:scale-95 transition-all shadow-luxury"
+                                                        title="Edit Resource"
                                                     >
                                                         <Edit size={12} />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteProduct(p.id)}
-                                                        className="p-3 bg-red-500 text-white rounded-sm hover:scale-110 transition-all shadow-lg"
+                                                        onClick={(e) => { e.stopPropagation(); deleteProduct(p.id); }}
+                                                        className="p-3 bg-red-500 text-white rounded-sm hover:scale-110 active:scale-95 transition-all shadow-lg"
+                                                        title="Delete Resource"
                                                     >
                                                         <Trash2 size={12} />
                                                     </button>

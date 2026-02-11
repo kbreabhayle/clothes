@@ -15,8 +15,9 @@ export default function ProductEditor({ product, onSave, onCancel }) {
         category_id: '',
         description: '',
         image_url: '',
+        images: ['', '', '', ''],
         status: 'active',
-        stock: 0
+        stock_quantity: 0
     });
     const [categories, setCategories] = useState([]);
     const [activeTab, setActiveTab] = useState('essential'); // 'essential' or 'creative'
@@ -30,8 +31,9 @@ export default function ProductEditor({ product, onSave, onCancel }) {
                 category_id: product.category_id || '',
                 description: product.description || '',
                 image_url: product.image_url || '',
+                images: product.images?.length === 4 ? product.images : (product.images || []).concat(Array(4).fill('')).slice(0, 4),
                 status: product.status || 'active',
-                stock: product.stock || 0
+                stock_quantity: product.stock_quantity || 0
             });
         }
     }, [product]);
@@ -67,27 +69,41 @@ export default function ProductEditor({ product, onSave, onCancel }) {
         }
     };
 
-    const handleFileUpload = async (e) => {
+    const handleFileUpload = async (e, index) => {
         const file = e.target.files[0];
         if (!file) return;
 
         setLoading(true);
         try {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
+            const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${fileExt}`;
             const filePath = `products/${fileName}`;
 
-            const { error: uploadError } = await supabase.storage
-                .from('vault')
-                .upload(filePath, file);
+            console.log('Attempting upload to product-images:', filePath);
 
-            if (uploadError) throw uploadError;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('product-images')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error('Supabase Upload Error:', uploadError);
+                throw uploadError;
+            }
 
             const { data: { publicUrl } } = supabase.storage
-                .from('vault')
+                .from('product-images')
                 .getPublicUrl(filePath);
 
-            setFormData({ ...formData, image_url: publicUrl });
+            if (index === -1) {
+                setFormData({ ...formData, image_url: publicUrl });
+            } else {
+                const newImages = [...formData.images];
+                newImages[index] = publicUrl;
+                setFormData({ ...formData, images: newImages });
+            }
         } catch (error) {
             console.error('Upload error:', error);
             alert('Upload failed: ' + error.message);
@@ -208,6 +224,20 @@ export default function ProductEditor({ product, onSave, onCancel }) {
 
                                 <div className="space-y-4">
                                     <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
+                                        <Box size={10} /> Inventory Volume
+                                    </label>
+                                    <input
+                                        required
+                                        type="number"
+                                        value={formData.stock_quantity}
+                                        onChange={(e) => setFormData({ ...formData, stock_quantity: parseInt(e.target.value) || 0 })}
+                                        className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[11px] font-black tracking-widest outline-none focus:border-accent transition-all text-foreground"
+                                        placeholder="0"
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black tracking-widest text-foreground/30 uppercase flex items-center gap-2">
                                         <Info size={10} /> Operational State
                                     </label>
                                     <div className="flex gap-4">
@@ -239,31 +269,55 @@ export default function ProductEditor({ product, onSave, onCancel }) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <div
-                                                onClick={() => document.getElementById('image-upload').click()}
-                                                className="aspect-video bg-foreground/5 border border-foreground/10 border-dashed rounded-smooth flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-foreground/10 transition-all group overflow-hidden relative"
+                                                onClick={() => document.getElementById('image-upload-main').click()}
+                                                className="aspect-[4/5] bg-foreground/5 border border-foreground/10 border-dashed rounded-smooth flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-foreground/10 transition-all group overflow-hidden relative"
                                             >
                                                 {formData.image_url ? (
                                                     <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <>
                                                         <ImageIcon size={24} className="text-foreground/20 group-hover:scale-110 transition-transform" />
-                                                        <span className="text-[8px] font-black tracking-widest text-foreground/40">Transmit Image Data</span>
+                                                        <span className="text-[8px] font-black tracking-widest text-foreground/40">Main Signature Image</span>
                                                     </>
                                                 )}
-                                                <input id="image-upload" type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                                                <input id="image-upload-main" type="file" className="hidden" onChange={(e) => handleFileUpload(e, -1)} accept="image/*" />
                                             </div>
-                                            <p className="text-[7px] font-black tracking-widest text-foreground/20 uppercase text-center">Supported: JPG, PNG, WEBP (MAX 5MB)</p>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <p className="text-[8px] font-black tracking-[0.2em] text-foreground/40 uppercase leading-relaxed italic border-l border-foreground/10 pl-4 py-2">
-                                                Visual data should minimize noise and maximize product clarity for the Atelier interface. 4:5 aspect ratio recommended.
-                                            </p>
                                             <input
                                                 value={formData.image_url}
                                                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                                                 className="w-full bg-foreground/5 border border-foreground/10 p-5 rounded-sm text-[10px] tracking-widest outline-none focus:border-accent transition-all text-foreground placeholder:text-foreground/10"
                                                 placeholder="OR INPUT EXTERNAL URL..."
                                             />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[0, 1, 2, 3].map((idx) => (
+                                                <div key={idx} className="space-y-2">
+                                                    <div
+                                                        onClick={() => document.getElementById(`image-upload-${idx}`).click()}
+                                                        className="aspect-square bg-foreground/5 border border-foreground/10 border-dashed rounded-sm flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-foreground/10 transition-all group overflow-hidden relative"
+                                                    >
+                                                        {formData.images[idx] ? (
+                                                            <img src={formData.images[idx]} alt={`Detail ${idx + 1}`} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <>
+                                                                <Plus size={16} className="text-foreground/20 group-hover:scale-110 transition-transform" />
+                                                                <span className="text-[6px] font-black tracking-widest text-foreground/40 uppercase">Detail {idx + 1}</span>
+                                                            </>
+                                                        )}
+                                                        <input id={`image-upload-${idx}`} type="file" className="hidden" onChange={(e) => handleFileUpload(e, idx)} accept="image/*" />
+                                                    </div>
+                                                    <input
+                                                        value={formData.images[idx]}
+                                                        onChange={(e) => {
+                                                            const newImages = [...formData.images];
+                                                            newImages[idx] = e.target.value;
+                                                            setFormData({ ...formData, images: newImages });
+                                                        }}
+                                                        className="w-full bg-foreground/5 border border-foreground/10 p-2 rounded-sm text-[7px] tracking-widest outline-none focus:border-accent transition-all text-foreground placeholder:text-foreground/10"
+                                                        placeholder="URL..."
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>

@@ -2,10 +2,15 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { useCart } from '@/context/CartContext';
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Eye } from 'lucide-react';
+import ProductQuickView from './ProductQuickView';
 
 export default function ProductCard({ product }) {
     const { addToCart } = useCart();
     const { showToast } = useToast();
+    const [showQuickView, setShowQuickView] = useState(false);
 
     const handleAction = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -20,14 +25,24 @@ export default function ProductCard({ product }) {
     return (
         <div className="bg-secondary border border-foreground/5 transition-all duration-200">
             {/* Image Container */}
-            <div className="relative aspect-[4/5] bg-secondary/50">
+            <div className="relative aspect-[4/5] bg-secondary/50 group overflow-hidden">
                 <Image
-                    src={product.image}
+                    src={product.image || product.image_url}
                     alt={product.name}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                     sizes="(max-width: 768px) 50vw, 20vw"
                 />
+
+                {/* Quick View Trigger Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <button
+                        onClick={() => setShowQuickView(true)}
+                        className="bg-background text-foreground px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 hover:scale-105 active:scale-95 flex items-center gap-2"
+                    >
+                        <Eye size={14} /> Quick View
+                    </button>
+                </div>
             </div>
 
             {/* Product Content */}
@@ -53,6 +68,14 @@ export default function ProductCard({ product }) {
                     Add to Bag
                 </button>
             </div>
+            <AnimatePresence>
+                {showQuickView && (
+                    <ProductQuickView
+                        product={product}
+                        onClose={() => setShowQuickView(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
