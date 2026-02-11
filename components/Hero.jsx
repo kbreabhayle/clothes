@@ -1,76 +1,64 @@
 "use client";
 
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { ShoppingBag, ArrowRight, Zap, Target, ShieldCheck } from 'lucide-react';
 
 export default function Hero() {
     return (
-        <section className="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden bg-background">
-            {/* Ambient Background Aura */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.15, scale: 1 }}
-                    transition={{ duration: 3, ease: "easeOut" }}
-                    className="absolute -top-[20%] -left-[10%] w-[120%] h-[140%] bg-[radial-gradient(circle_at_30%_30%,_rgba(255,255,255,0.1)_0%,_transparent_50%)]"
-                />
+        <section className="bg-black pt-28 pb-16 border-b border-white/5">
+            <div className="container-custom">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    {/* Left Column: Direct Action */}
+                    <div className="lg:col-span-7 space-y-8">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-white">Live Collection: Series 01</span>
+                        </div>
+
+                        <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter leading-[0.9] text-white">
+                            ENGINEERED <br /> FOR FUNCTION.
+                        </h1>
+
+                        <p className="max-w-xl text-lg text-white/40 font-medium leading-normal">
+                            High-performance apparel designed for the modern metropolitan environment.
+                            100% functional, zero filler.
+                        </p>
+
+                        <div className="flex flex-wrap gap-4 pt-4">
+                            <Link
+                                href="/shop"
+                                className="px-8 py-4 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center gap-3"
+                            >
+                                Shop Collection <ArrowRight size={14} />
+                            </Link>
+                            <Link
+                                href="/collections"
+                                className="px-8 py-4 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                            >
+                                Browse Series
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Key Metrics/Features (Functional Grid) */}
+                    <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                            { icon: <Zap size={18} />, title: "Snappy UX", desc: "Optimized for speed" },
+                            { icon: <Target size={18} />, title: "Precision", desc: "Exact fit specs" },
+                            { icon: <ShieldCheck size={18} />, title: "Verified", desc: "Authenticity guaranteed" },
+                            { icon: <ShoppingBag size={18} />, title: "Express", desc: "Global shipping" }
+                        ].map((item, i) => (
+                            <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-sm space-y-3">
+                                <div className="text-white/40">{item.icon}</div>
+                                <div>
+                                    <h3 className="text-[11px] font-bold uppercase text-white tracking-wider">{item.title}</h3>
+                                    <p className="text-[10px] text-white/20 font-medium uppercase tracking-tighter">{item.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-
-            <div className="container-custom relative z-10 flex flex-col items-center text-center">
-                <motion.div
-                    initial={{ opacity: 0, letterSpacing: "1em" }}
-                    animate={{ opacity: 1, letterSpacing: "0.4em" }}
-                    transition={{ duration: 1.5, ease: "circOut" }}
-                    className="text-[10px] font-light uppercase text-white/40 mb-10"
-                >
-                    Est. MMXXVI — Global Luxury
-                </motion.div>
-
-                <motion.h1
-                    initial={{ opacity: 0, filter: "blur(20px)", y: 50 }}
-                    animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-7xl md:text-9xl font-heading font-thin tracking-[-0.04em] leading-[0.85] mb-12 text-white"
-                >
-                    THE ART <br />
-                    <span className="font-black italic">OF MOTION</span>
-                </motion.h1>
-
-                <motion.p
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                    className="max-w-xl text-md text-white/30 font-light tracking-wide mb-16 leading-relaxed"
-                >
-                    A new dimension of fashion discovery where digital precision meets
-                    unrivaled cinematic elegance.
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
-                    className="flex flex-col sm:flex-row gap-6"
-                >
-                    <button className="group relative px-12 py-5 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-700">
-                        <span className="relative z-10 flex items-center gap-3">
-                            Discover Catalog <ArrowRight size={14} strokeWidth={3} />
-                        </span>
-                    </button>
-                    <button className="px-12 py-5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-700 backdrop-blur-sm">
-                        Our Vision
-                    </button>
-                </motion.div>
-            </div>
-
-            {/* Decorative Scroll Indicator */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.1 }}
-                transition={{ duration: 2, delay: 1.5 }}
-                className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[1px] h-32 bg-gradient-to-b from-transparent via-white to-transparent"
-            />
         </section>
     );
 }

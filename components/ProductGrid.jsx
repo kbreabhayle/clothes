@@ -39,62 +39,46 @@ function ProductGridContent() {
         });
 
     return (
-        <section className="py-32 bg-background" id="shop">
+        <section className="py-20 bg-black" id="shop">
             <div className="container-custom">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
-                    <div className="max-w-xl">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            className="text-[10px] font-thin tracking-[0.3em] uppercase text-white/40 mb-6"
-                        >
-                            Curated Selection
-                        </motion.div>
-                        <motion.h2
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                            className="text-5xl md:text-7xl font-heading font-thin tracking-[-0.02em] leading-[0.9] text-white"
-                        >
-                            MOTION <br />
-                            <span className="font-black italic">COLLECTION</span>
-                        </motion.h2>
+                <div className="flex flex-col lg:flex-row justify-between items-baseline mb-12 gap-8">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tighter uppercase text-white mb-2">
+                            COLLECTION_SERIES_01
+                        </h2>
+                        <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest">
+                            {filteredProducts.length} Results Found
+                        </p>
                     </div>
 
                     {/* Category Filter */}
-                    <div className="flex flex-wrap gap-3">
-                        {categories.map((cat, idx) => (
-                            <motion.button
-                                initial={{ opacity: 0, y: 10 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.1 }}
+                    <div className="flex flex-wrap gap-2">
+                        {categories.map((cat) => (
+                            <button
                                 key={cat}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`text-[9px] font-black tracking-[0.3em] uppercase px-8 py-4 rounded-smooth transition-all duration-700 ${activeCategory === cat
-                                    ? 'bg-white text-black'
-                                    : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'
+                                className={`text-[10px] font-bold tracking-wider uppercase px-6 py-2 border transition-all ${activeCategory === cat
+                                    ? 'bg-white text-black border-white'
+                                    : 'bg-transparent text-white/40 border-white/10 hover:border-white/30 hover:text-white'
                                     }`}
                             >
                                 {cat}
-                            </motion.button>
+                            </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-white/5 border border-white/5">
                     {loading ? (
-                        [1, 2, 3, 4].map(n => (
-                            <div key={n} className="aspect-[4/5] bg-white/[0.03] rounded-smooth" />
+                        [1, 2, 3, 4, 5].map(n => (
+                            <div key={n} className="aspect-[4/5] bg-white/[0.02]" />
                         ))
                     ) : (
-                        <AnimatePresence mode='popLayout'>
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
-                        </AnimatePresence>
+                        filteredProducts.map((product) => (
+                            <div key={product.id} className="bg-black">
+                                <ProductCard product={product} />
+                            </div>
+                        ))
                     )}
                 </div>
             </div>

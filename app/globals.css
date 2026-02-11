@@ -1,20 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  /* Cinematic Minimal Luxury Tokens */
-  --background: #020202;
-  /* Pure obsidian */
+  /* Functional Modernism Tokens */
+  --background: #000000;
   --foreground: #ffffff;
-  --secondary: #0a0a0a;
-  --accent: #e5e5e5;
-  --border: rgba(255, 255, 255, 0.05);
-  --border-hover: rgba(255, 255, 255, 0.2);
-  --text-muted: #888888;
+  --secondary: #111111;
+  --accent: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.3);
+  --text-muted: #a1a1a1;
 
-  --radius-xl: 12px;
-  /* Softer, cinematic feel */
-  --transition-base: 600ms cubic-bezier(0.16, 1, 0.3, 1);
-  /* High-end ease-out */
+  --radius-smooth: 4px;
+  /* Sharper, functional corners */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme {
@@ -24,12 +23,10 @@
   --color-accent: var(--accent);
   --color-border-primary: var(--border);
 
-  --font-heading: 'Outfit', sans-serif;
+  --font-heading: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
 
-  --radius-smooth: 12px;
-
-  --animate-reveal: reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --radius-smooth: 4px;
 }
 
 @layer base {
@@ -40,6 +37,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    font-size: 14px;
+    /* Standardize baseline font size */
   }
 
   h1,
@@ -48,17 +47,21 @@
   h4,
   h5,
   h6 {
-    @apply font-heading tracking-tight;
+    @apply font-bold tracking-tight;
   }
 }
 
 @layer utilities {
-  .glass {
-    @apply bg-white/80 backdrop-blur-md border border-black/5;
+  .container-custom {
+    @apply max-w-[1440px] mx-auto px-4 md:px-6;
   }
 
-  .container-custom {
-    @apply max-w-[1280px] mx-auto px-6 md:px-8;
+  .btn-primary {
+    @apply bg-white text-black text-[11px] font-bold uppercase tracking-wider px-6 py-3 transition-all duration-200 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent text-white border border-white/10 text-[11px] font-bold uppercase tracking-wider px-6 py-3 hover:bg-white/5 transition-all duration-200;
   }
 }
 

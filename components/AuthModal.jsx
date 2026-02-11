@@ -2,21 +2,20 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, Loader2 } from 'lucide-react';
 import { signIn, signUp } from '@/lib/supabase';
+import { useToast } from '@/context/ToastContext';
 
 export default function AuthModal({ isOpen, onClose }) {
-    const [mode, setMode] = useState('login'); // 'login' or 'signup'
+    const [mode, setMode] = useState('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const { showToast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
-
         try {
             const { error: authError } = mode === 'login'
                 ? await signIn(email, password)
@@ -24,9 +23,10 @@ export default function AuthModal({ isOpen, onClose }) {
 
             if (authError) throw authError;
 
+            showToast(mode === 'login' ? 'Signed in successfully' : 'Account created', 'success');
             onClose();
         } catch (err) {
-            setError(err.message);
+            showToast(err.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -35,97 +35,87 @@ export default function AuthModal({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-                className="absolute inset-0 bg-black/80 backdrop-blur-2xl"
-            />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        {/* Static Backdrop */}
+                        <div
+                            onClick={onClose}
+                            className="absolute inset-0 bg-black/90 cursor-pointer"
+                        />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-md bg-[#080808] border border-white/5 p-12 rounded-smooth shadow-2xl"
-            >
-                <button
-                    onClick={onClose}
-                    className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors"
-                >
-                    <X size={20} />
-                </button>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.15 }}
+                            className="relative w-full max-w-sm bg-black border border-white/10 p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={onClose}
+                                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
 
-                <div className="mb-12">
-                    <h2 className="text-[10px] font-black tracking-[0.5em] uppercase text-white mb-3">
-                        {mode === 'login' ? 'Welcome Back' : 'Create Identity'}
-                    </h2>
-                    <p className="text-[8px] font-bold tracking-[0.2em] text-white/20 uppercase">
-                        ATELIER ACCESS PROTOCOL
-                    </p>
-                </div>
+                            <div className="mb-8">
+                                <h2 className="text-xl font-bold tracking-tight uppercase text-white">
+                                    {mode === 'login' ? 'SIGN IN' : 'REGISTER'}
+                                </h2>
+                                <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mt-1">
+                                    StyleVault Account access
+                                </p>
+                            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="space-y-6">
-                        <div className="space-y-3">
-                            <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                <Mail size={10} /> Email Segment
-                            </label>
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="CLIENT@ATELIER.XYZ"
-                                className="w-full bg-white/5 border border-white/10 py-4 px-6 rounded-sm text-[11px] tracking-widest outline-none focus:border-white transition-all text-white placeholder:text-white/5"
-                            />
-                        </div>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-white/40">Email Address</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                                            className="w-full bg-white/5 border border-white/10 p-3 text-[12px] outline-none focus:border-white transition-all text-white"
+                                        />
+                                    </div>
 
-                        <div className="space-y-3">
-                            <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                <Lock size={10} /> Cryptographic Pass
-                            </label>
-                            <input
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••••••"
-                                className="w-full bg-white/5 border border-white/10 py-4 px-6 rounded-sm text-[11px] tracking-widest outline-none focus:border-white transition-all text-white placeholder:text-white/5"
-                            />
-                        </div>
-                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-white/40">Password</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 p-3 text-[12px] outline-none focus:border-white transition-all text-white"
+                                        />
+                                    </div>
+                                </div>
 
-                    {error && (
-                        <p className="text-[8px] font-black text-red-500 tracking-widest uppercase">
-                            {error}
-                        </p>
-                    )}
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-white text-black py-4 text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="animate-spin" size={14} /> : (
+                                        mode === 'login' ? 'CONTINUE' : 'CREATE ACCOUNT'
+                                    )}
+                                </button>
+                            </form>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-white text-black py-5 text-[9px] font-black tracking-[0.4em] uppercase flex items-center justify-center gap-4 hover:tracking-[0.6em] transition-all duration-700 disabled:opacity-50"
-                    >
-                        {loading ? <Loader2 className="animate-spin" size={14} /> : (
-                            <>
-                                {mode === 'login' ? 'Initialize Session' : 'Register Identity'}
-                                <ArrowRight size={14} strokeWidth={3} />
-                            </>
-                        )}
-                    </button>
-                </form>
-
-                <div className="mt-12 pt-12 border-t border-white/5 text-center">
-                    <button
-                        onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                        className="text-[9px] font-black tracking-[0.2em] uppercase text-white/30 hover:text-white transition-colors"
-                    >
-                        {mode === 'login' ? "Don't have an ID? Register" : "Already registered? Sign In"}
-                    </button>
-                </div>
-            </motion.div>
+                            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                                <button
+                                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                                    className="text-[10px] font-bold uppercase text-white/40 hover:text-white transition-colors"
+                                >
+                                    {mode === 'login' ? "New client? Create account" : "Already registered? Sign in"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
