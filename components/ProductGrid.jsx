@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProducts } from '../lib/products';
 import ProductCard from './ProductCard';
 
-export default function ProductGrid() {
+function ProductGridContent() {
     const searchParams = useSearchParams();
     const initialCategory = searchParams.get('category')?.toLowerCase() || 'all';
 
@@ -99,5 +99,23 @@ export default function ProductGrid() {
                 </div>
             </div>
         </section>
+    );
+}
+
+export default function ProductGrid() {
+    return (
+        <Suspense fallback={
+            <section className="py-32 bg-background">
+                <div className="container-custom">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+                        {[1, 2, 3, 4].map(n => (
+                            <div key={n} className="aspect-[4/5] bg-white/[0.03] rounded-smooth" />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        }>
+            <ProductGridContent />
+        </Suspense>
     );
 }
