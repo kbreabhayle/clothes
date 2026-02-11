@@ -7,13 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { onAuthStateChange, signOut } from '@/lib/supabase';
+import { useCart } from '@/context/CartContext';
 import AuthModal from './AuthModal';
+import CartDrawer from './CartDrawer';
 
 function cn(...inputs) {
     return twMerge(clsx(inputs));
 }
 
 export default function Navbar() {
+    const { cartCount, setIsCartOpen } = useCart();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -50,8 +53,7 @@ export default function Navbar() {
         if (!user) {
             setIsAuthModalOpen(true);
         } else {
-            // Future: Open Cart Drawer
-            alert("Cart access granted for " + user.email);
+            setIsCartOpen(true);
         }
     };
 
@@ -136,7 +138,7 @@ export default function Navbar() {
                         >
                             <ShoppingBag size={20} strokeWidth={1} />
                             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-black text-[8px] flex items-center justify-center font-black">
-                                0
+                                {cartCount}
                             </span>
                         </button>
                     </div>
@@ -172,6 +174,7 @@ export default function Navbar() {
                 isOpen={isAuthModalOpen}
                 onClose={() => setIsAuthModalOpen(false)}
             />
+            <CartDrawer />
         </>
     );
 }

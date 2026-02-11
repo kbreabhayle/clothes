@@ -6,14 +6,16 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Eye } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+import { useCart } from '@/context/CartContext';
+
 export default function ProductCard({ product }) {
+    const { addToCart } = useCart();
     const handleAction = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             window.dispatchEvent(new CustomEvent('open-auth-modal'));
         } else {
-            console.log("Session active, proceeding with order for", product.name);
-            alert(`Adding ${product.name} to cart...`);
+            addToCart(product);
         }
     };
 

@@ -1,5 +1,5 @@
-import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/context/CartContext";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -25,7 +25,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${outfit.variable} ${inter.variable} antialiased`}
       >
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
