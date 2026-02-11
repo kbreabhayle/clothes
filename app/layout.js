@@ -1,3 +1,4 @@
+import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 
