@@ -1,4 +1,7 @@
+import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
+import { useCart } from '@/context/CartContext';
 
 export default function ProductCard({ product }) {
     const { addToCart } = useCart();

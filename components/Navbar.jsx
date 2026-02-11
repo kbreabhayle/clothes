@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Menu, X, User, Search } from 'lucide-react';
+import { ShoppingBag, Menu, X, User, Search, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -102,27 +102,38 @@ export default function Navbar() {
                     {/* User Actions */}
                     <div className="flex items-center gap-6 ml-auto">
                         {user ? (
-                            <div className="relative group/user">
-                                <button className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
-                                    <User size={18} strokeWidth={1.5} />
-                                    <span className="text-[10px] font-bold uppercase hidden xl:block">Account</span>
-                                </button>
+                            <>
+                                <Link
+                                    href="/orders"
+                                    className="flex items-center gap-2 text-white/50 hover:text-white transition-colors"
+                                    title="Order History"
+                                >
+                                    <Package size={18} strokeWidth={1.5} />
+                                    <span className="text-[10px] font-bold uppercase hidden xl:block">Orders</span>
+                                </Link>
 
-                                <div className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 p-4 shadow-2xl opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-[60]">
-                                    <p className="text-[9px] font-bold text-white/40 uppercase mb-3 px-2">Signed in as</p>
-                                    <p className="text-[10px] font-medium text-white truncate mb-4 px-2">{user.email}</p>
-                                    <div className="h-[1px] bg-white/5 mb-3" />
-                                    <Link href="/orders" className="block w-full text-left p-2 text-[10px] font-bold uppercase text-white/60 hover:text-white hover:bg-white/5 transition-colors">
-                                        Orders
-                                    </Link>
-                                    <button
-                                        onClick={() => signOut()}
-                                        className="w-full text-left p-2 text-[10px] font-bold uppercase text-red-500/60 hover:text-red-500 hover:bg-red-500/5 transition-colors"
-                                    >
-                                        Sign Out
+                                <div className="relative group/user">
+                                    <button className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
+                                        <User size={18} strokeWidth={1.5} />
+                                        <span className="text-[10px] font-bold uppercase hidden xl:block">Account</span>
                                     </button>
+
+                                    <div className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 p-4 shadow-2xl opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-[60]">
+                                        <p className="text-[9px] font-bold text-white/40 uppercase mb-3 px-2">Signed in as</p>
+                                        <p className="text-[10px] font-medium text-white truncate mb-4 px-2">{user.email}</p>
+                                        <div className="h-[1px] bg-white/5 mb-3" />
+                                        <Link href="/orders" className="block w-full text-left p-2 text-[10px] font-bold uppercase text-white/60 hover:text-white hover:bg-white/5 transition-colors">
+                                            Orders
+                                        </Link>
+                                        <button
+                                            onClick={() => signOut()}
+                                            className="w-full text-left p-2 text-[10px] font-bold uppercase text-red-500/60 hover:text-red-500 hover:bg-red-500/5 transition-colors"
+                                        >
+                                            Sign Out
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            </>
                         ) : (
                             <button
                                 onClick={() => setIsAuthModalOpen(true)}

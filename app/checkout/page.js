@@ -4,14 +4,23 @@ import { useState, useEffect } from 'react';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ArrowRight, ArrowLeft, CreditCard, Truck, User, ShoppingBag, ShieldAlert } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, CreditCard, Truck, User, ShoppingBag, ShieldAlert, Upload, Zap, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { onAuthStateChange } from '@/lib/supabase';
+import { onAuthStateChange, supabase } from '@/lib/supabase';
+import { useToast } from '@/context/ToastContext';
+import { useCart } from '@/context/CartContext';
+import Image from 'next/image';
 
 export default function CheckoutPage() {
+    const steps = ["REVIEW", "DATA", "PAYMENT", "CONFIRM"];
     const [step, setStep] = useState(1);
     const [user, setUser] = useState(undefined); // undefined = loading
     const [isProcessing, setIsProcessing] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('CBE'); // CBE or TELEBIRR
+    const [paymentProof, setPaymentProof] = useState(null);
+    const [orderRef, setOrderRef] = useState('');
+    const { showToast } = useToast();
+    const { cart, cartTotal, clearCart } = useCart();
 
     useEffect(() => {
         const { data: { subscription } } = onAuthStateChange((_event, session) => {
@@ -50,26 +59,60 @@ export default function CheckoutPage() {
         );
     }
 
+
     const nextStep = async () => {
         if (step === 3) {
             setIsProcessing(true);
             try {
-                // Simulate Secure Transmission
+                let proofUrl = null;
+
+                if (paymentProof) {
+                    const fileName = `proof-${Date.now()}-${paymentProof.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+                    const { error: uploadError } = await supabase.storage
+                        .from('payment-proofs')
+                        .upload(fileName, paymentProof);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('payment-proofs')
+                        .getPublicUrl(fileName);
+
+                    proofUrl = publicUrl;
+                }
+
+                // Construct Order Payload
+                const orderPayload = {
+                    customer_details: {
+                        name: user?.email || 'VALUED CLIENT',
+                        email: user?.email,
+                        payment_method: paymentMethod,
+                        payment_proof_name: paymentProof?.name || 'Manual Upload',
+                        payment_proof_url: proofUrl
+                    },
+                    items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, qty: item.quantity, image_url: item.image_url })),
+                    pricing: { total: cartTotal }
+                };
+
                 const response = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        customer: { name: 'VALUED CLIENT' }, // In real app, from state
-                        items: [{ id: 1, name: 'MIDNIGHT VELVET BLAZER', price: 1450, qty: 1 }],
-                        pricing: { total: 1450 }
-                    })
+                    body: JSON.stringify(orderPayload)
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
+                    setOrderRef(result.order_number || '');
+                    clearCart();
+                    showToast('Secure Connection Established', 'success');
                     setStep(4);
+                } else {
+                    throw new Error(result.error || 'Protocol Failed');
                 }
             } catch (error) {
                 console.error("Transmission Error", error);
+                showToast(error.message, 'error');
             } finally {
                 setIsProcessing(false);
             }
@@ -143,19 +186,24 @@ export default function CheckoutPage() {
                                         className="space-y-10"
                                     >
                                         <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-white/50 border-b border-white/5 pb-6">Vault Review</h2>
-                                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-smooth flex gap-8 group hover:border-white/20 transition-all duration-700">
-                                            <div className="w-24 h-32 bg-secondary relative overflow-hidden rounded-sm">
-                                                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Midnight Velvet Blazer</h3>
-                                                <p className="text-[10px] text-white/30 tracking-widest mt-2 uppercase">Edition: Bespoke / Size: M</p>
-                                                <div className="mt-8 flex justify-between items-end">
-                                                    <p className="text-sm font-black text-white">$1,450.00</p>
-                                                    <span className="text-[8px] font-black tracking-[0.2em] text-white/20 uppercase">Qty: 01</span>
+                                        {cart.length === 0 ? (
+                                            <div className="text-center py-16 text-white/20 text-[10px] tracking-widest uppercase">Your vault is empty</div>
+                                        ) : cart.map(item => (
+                                            <div key={item.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-smooth flex gap-8 group hover:border-white/20 transition-all duration-700">
+                                                <div className="w-24 h-32 bg-secondary relative overflow-hidden rounded-sm">
+                                                    {item.image_url && <Image src={item.image_url} alt={item.name} fill className="object-cover" sizes="96px" />}
+                                                    <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">{item.name}</h3>
+                                                    <p className="text-[10px] text-white/30 tracking-widest mt-2 uppercase">{item.description?.slice(0, 40) || 'StyleVault Exclusive'}</p>
+                                                    <div className="mt-8 flex justify-between items-end">
+                                                        <p className="text-sm font-black text-white">${item.price?.toLocaleString()}</p>
+                                                        <span className="text-[8px] font-black tracking-[0.2em] text-white/20 uppercase">Qty: {String(item.quantity).padStart(2, '0')}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        ))}
                                     </motion.div>
                                 )}
 
@@ -202,26 +250,84 @@ export default function CheckoutPage() {
                                         className="space-y-12"
                                     >
                                         <h2 className="text-[12px] font-black tracking-[0.3em] uppercase text-white/50 border-b border-white/5 pb-6">Payment Intelligence</h2>
-                                        <div className="bg-white/5 p-10 rounded-smooth border border-white/10 flex items-center gap-8 relative overflow-hidden group">
-                                            <motion.div
-                                                initial={{ scale: 0.8, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 0.05 }}
-                                                className="absolute -right-10 -top-10 text-white"
-                                            >
-                                                <CreditCard size={180} />
-                                            </motion.div>
-                                            <CreditCard size={28} strokeWidth={1} className="text-white" />
-                                            <div className="relative z-10">
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white mb-2">Encrypted Transmission</h3>
-                                                <p className="text-[9px] text-white/30 tracking-widest uppercase">Verified Secure Gate — SSL 256-Bit</p>
-                                            </div>
-                                            <div className="ml-auto w-5 h-5 rounded-full border border-white/20 flex items-center justify-center">
-                                                <div className="w-2 h-2 rounded-full bg-white" />
-                                            </div>
+
+                                        {/* Payment Method Selector */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {['CBE', 'TELEBIRR'].map((method) => (
+                                                <button
+                                                    key={method}
+                                                    onClick={() => setPaymentMethod(method)}
+                                                    className={`py-6 border rounded-sm text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${paymentMethod === method
+                                                        ? 'bg-white text-black border-white'
+                                                        : 'bg-transparent text-white/40 border-white/10 hover:border-white/30 hover:text-white'
+                                                        }`}
+                                                >
+                                                    {method === 'CBE' ? 'COMMERCIAL BANK' : 'TELEBIRR WALLET'}
+                                                </button>
+                                            ))}
                                         </div>
-                                        <div className="space-y-3 mt-10">
-                                            <label className="text-[9px] font-black tracking-widest text-white/20 uppercase">Card Matrix</label>
-                                            <input placeholder="XXXX XXXX XXXX XXXX" className="w-full bg-transparent border-b border-white/10 py-4 text-[11px] tracking-[0.4em] outline-none focus:border-white transition-all text-white" />
+
+                                        {/* Payment Details */}
+                                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-sm space-y-6">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="p-3 bg-white/5 rounded-full text-white">
+                                                    {paymentMethod === 'CBE' ? <CreditCard size={20} /> : <Zap size={20} />}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                                                        {paymentMethod === 'CBE' ? 'CBE Transfer Details' : 'Telebirr Merchant Info'}
+                                                    </h3>
+                                                    <p className="text-[9px] text-white/30 tracking-widest uppercase mt-1">
+                                                        {paymentMethod === 'CBE' ? 'Direct Bank Deposit / Mobile Transfer' : 'Scan or Enter Mobile Number'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-center p-4 bg-black border border-white/10 rounded-sm">
+                                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                                                        {paymentMethod === 'CBE' ? 'Account Number' : 'Merchant ID'}
+                                                    </span>
+                                                    <span className="text-[11px] font-mono text-white tracking-wider">
+                                                        {paymentMethod === 'CBE' ? '1000123456789' : '556677'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center p-4 bg-black border border-white/10 rounded-sm">
+                                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                                                        {paymentMethod === 'CBE' ? 'Account Name' : 'Merchant Name'}
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-white tracking-widest uppercase">
+                                                        StyleVault Official
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-6 border-t border-white/5">
+                                                <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-4">
+                                                    Proof of Transaction
+                                                </p>
+                                                <label className="flex flex-col items-center justify-center w-full h-32 border border-dashed border-white/20 rounded-sm cursor-pointer hover:border-white/40 hover:bg-white/[0.02] transition-all group">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        {paymentProof ? (
+                                                            <div className="flex items-center gap-3 text-green-500">
+                                                                <Check size={24} />
+                                                                <p className="text-[10px] font-bold tracking-widest uppercase">{paymentProof.name}</p>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <Upload size={24} className="text-white/20 mb-3 group-hover:text-white transition-colors" />
+                                                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Upload Screenshot</p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                        onChange={(e) => setPaymentProof(e.target.files[0])}
+                                                    />
+                                                </label>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
@@ -237,16 +343,17 @@ export default function CheckoutPage() {
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1.2 }}
                                             transition={{ type: "spring", damping: 10 }}
-                                            className="w-24 h-24 bg-white text-black rounded-full flex items-center justify-center mx-auto mb-12"
+                                            className="w-24 h-24 bg-white/10 text-white rounded-full flex items-center justify-center mx-auto mb-12 border border-white/20"
                                         >
-                                            <Check size={40} strokeWidth={3} />
+                                            <ShieldCheck size={40} strokeWidth={1.5} />
                                         </motion.div>
-                                        <h2 className="text-5xl md:text-7xl font-heading font-thin tracking-tighter text-white mb-6 uppercase">
-                                            VAULT <span className="font-black italic">CONFIRMED</span>
+                                        <h2 className="text-5xl md:text-6xl font-heading font-thin tracking-tighter text-white mb-6 uppercase">
+                                            VERIFICATION <br /><span className="font-black italic">PENDING</span>
                                         </h2>
                                         <p className="text-white/30 text-[10px] tracking-[0.2em] font-medium uppercase max-w-sm mx-auto leading-loose">
-                                            Order #SV-2026-X99 has been initialized.
-                                            Accessing distribution link via secure protocol.
+                                            Payment proof received. Protocol awaiting administrative confirmation.
+                                            <br />
+                                            Reference: {orderRef || 'Processing...'}
                                         </p>
                                         <div className="mt-16">
                                             <Link href="/shop" className="text-[9px] font-black tracking-[0.4em] uppercase text-white hover:tracking-[0.6em] transition-all duration-700 border-b border-white/10 pb-2">
@@ -267,10 +374,10 @@ export default function CheckoutPage() {
                                     </button>
                                     <button
                                         onClick={nextStep}
-                                        disabled={isProcessing}
-                                        className="group bg-white text-black px-12 py-5 text-[9px] font-black tracking-[0.3em] uppercase flex items-center gap-4 hover:tracking-[0.4em] transition-all duration-700 disabled:opacity-50"
+                                        disabled={isProcessing || (step === 3 && !paymentProof)}
+                                        className="group bg-white text-black px-12 py-5 text-[9px] font-black tracking-[0.3em] uppercase flex items-center gap-4 hover:tracking-[0.4em] transition-all duration-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isProcessing ? 'Initializing...' : step === 3 ? 'Execute Protocol' : 'Process Continuity'} <ArrowRight size={14} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                                        {isProcessing ? 'Verifying...' : step === 3 ? 'Submit Proof' : 'Process Continuity'} <ArrowRight size={14} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
                                 </div>
                             )}
@@ -286,7 +393,11 @@ export default function CheckoutPage() {
                             <div className="space-y-6 mb-10">
                                 <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
                                     <span>Valuation</span>
-                                    <span>$1,450.00</span>
+                                    <span>${cartTotal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
+                                    <span>Items</span>
+                                    <span>{cart.reduce((a, i) => a + i.quantity, 0)}</span>
                                 </div>
                                 <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase text-white/30">
                                     <span>Logistics</span>
@@ -295,7 +406,7 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex justify-between font-heading border-t border-white/10 pt-6">
                                 <span className="uppercase text-[9px] font-black tracking-[0.3em] text-white/50">Cumulative</span>
-                                <span className="text-2xl font-black text-white">$1,450.00</span>
+                                <span className="text-2xl font-black text-white">${cartTotal.toLocaleString()}</span>
                             </div>
 
                             <div className="mt-12 flex items-center gap-4 opacity-20 grayscale">

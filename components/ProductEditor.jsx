@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductEditor({ product = null, onSave, onCancel }) {
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
         name: product?.name || '',
@@ -145,26 +146,74 @@ export default function ProductEditor({ product = null, onSave, onCancel }) {
                         <div className="space-y-8">
                             <div className="space-y-3">
                                 <label className="text-[9px] font-black tracking-widest text-white/30 uppercase flex items-center gap-2">
-                                    <Upload size={10} /> Media Asset URL
+                                    <Upload size={10} /> Product Image
                                 </label>
-                                <input
-                                    value={formData.image_url}
-                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 p-5 rounded-sm text-[9px] tracking-wider outline-none focus:border-white transition-all text-white font-mono"
-                                    placeholder="https://..."
-                                />
-                                <div className="aspect-[4/5] bg-white/[0.02] border border-dashed border-white/10 rounded-sm overflow-hidden flex items-center justify-center">
+
+                                {/* File Upload Zone */}
+                                <label className={`block aspect-[4/5] bg-white/[0.02] border border-dashed rounded-sm overflow-hidden cursor-pointer hover:border-white/30 transition-all group relative ${uploading ? 'border-white/40 animate-pulse' : 'border-white/10'}`}>
                                     {formData.image_url ? (
                                         <img src={formData.image_url} className="w-full h-full object-cover" alt="Preview" />
                                     ) : (
-                                        <div className="text-center">
-                                            <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-white/20">
-                                                <Upload size={16} />
+                                        <div className="flex flex-col items-center justify-center h-full text-center">
+                                            <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-white/20 group-hover:text-white group-hover:bg-white/10 transition-all">
+                                                <Upload size={20} />
                                             </div>
-                                            <p className="text-[8px] font-black tracking-widest text-white/20 uppercase">No Manifest Image</p>
+                                            <p className="text-[9px] font-black tracking-widest text-white/20 uppercase group-hover:text-white/40 transition-colors">
+                                                {uploading ? 'Uploading...' : 'Click to Upload Image'}
+                                            </p>
+                                            <p className="text-[8px] text-white/10 tracking-wider uppercase mt-2">JPG, PNG, WebP</p>
                                         </div>
                                     )}
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        disabled={uploading}
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (!file) return;
+                                            setUploading(true);
+                                            try {
+                                                const fileName = `product-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+                                                const { error: uploadError } = await supabase.storage
+                                                    .from('product-images')
+                                                    .upload(fileName, file);
+                                                if (uploadError) throw uploadError;
+                                                const { data: { publicUrl } } = supabase.storage
+                                                    .from('product-images')
+                                                    .getPublicUrl(fileName);
+                                                setFormData(prev => ({ ...prev, image_url: publicUrl }));
+                                            } catch (err) {
+                                                console.error('Upload failed:', err);
+                                                alert('Image upload failed: ' + err.message);
+                                            } finally {
+                                                setUploading(false);
+                                            }
+                                        }}
+                                    />
+                                    {formData.image_url && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFormData(prev => ({ ...prev, image_url: '' })); }}
+                                            className="absolute top-3 right-3 p-2 bg-black/60 rounded-full text-white/60 hover:text-white hover:bg-black transition-all"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </label>
+
+                                {/* Or paste URL */}
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-1 h-[1px] bg-white/5" />
+                                    <span className="text-[8px] text-white/15 uppercase tracking-widest">or paste url</span>
+                                    <div className="flex-1 h-[1px] bg-white/5" />
                                 </div>
+                                <input
+                                    value={formData.image_url}
+                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-sm text-[9px] tracking-wider outline-none focus:border-white transition-all text-white font-mono"
+                                    placeholder="https://..."
+                                />
                             </div>
 
                             <div className="flex gap-12 pt-4">

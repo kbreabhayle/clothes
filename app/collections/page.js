@@ -4,11 +4,11 @@ import Collections from "@/components/Collections";
 
 export default function CollectionsPage() {
     return (
-        <main className="min-h-screen pt-24 bg-white">
+        <main className="min-h-screen pt-24 bg-background">
             <Navbar />
             <div className="container-custom py-12">
-                <h1 className="text-4xl font-heading font-black tracking-tight mb-8">COLLECTIONS</h1>
-                <p className="text-text-muted mb-12 max-w-xl underline-offset-4 decoration-1">
+                <h1 className="text-xl font-bold tracking-wider uppercase text-white mb-4">Collections</h1>
+                <p className="text-[10px] text-white/30 tracking-widest uppercase mb-12 max-w-xl">
                     Explore our curated edits designed to inspire the modern wardrobe.
                 </p>
             </div>

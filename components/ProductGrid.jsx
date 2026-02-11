@@ -68,16 +68,14 @@ function ProductGridContent() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-white/5 border border-white/5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-12">
                     {loading ? (
                         [1, 2, 3, 4, 5].map(n => (
                             <div key={n} className="aspect-[4/5] bg-white/[0.02]" />
                         ))
                     ) : (
                         filteredProducts.map((product) => (
-                            <div key={product.id} className="bg-black">
-                                <ProductCard product={product} />
-                            </div>
+                            <ProductCard key={product.id} product={product} />
                         ))
                     )}
                 </div>

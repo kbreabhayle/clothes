@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Package, Truck, CheckCircle, RefreshCcw, Search, Eye, ArrowRight, Plus, Box, List, Edit, Trash2 } from 'lucide-react';
+import { Shield, Package, Truck, CheckCircle, XCircle, RefreshCcw, Search, Eye, ArrowRight, Plus, Box, List, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import AdminLogin from '@/components/AdminLogin';
 import ProductEditor from '@/components/ProductEditor';
@@ -82,8 +82,8 @@ export default function AdminDashboard() {
     }
 
     const filteredOrders = orders.filter(o =>
-        o.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.customer_details?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        (o.order_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (o.customer_details?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -192,22 +192,23 @@ export default function AdminDashboard() {
                                                         initial={{ opacity: 0 }}
                                                         animate={{ opacity: 1 }}
                                                         exit={{ opacity: 0 }}
-                                                        key={order.order_id}
+                                                        key={order.id}
                                                         className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group"
                                                     >
                                                         <td className="px-8 py-8">
-                                                            <div className="text-[10px] font-black tracking-widest text-white mb-1">{order.order_id}</div>
+                                                            <div className="text-[10px] font-black tracking-widest text-white mb-1">{order.order_number}</div>
                                                             <div className="text-[8px] tracking-widest text-white/20 uppercase">{new Date(order.created_at).toLocaleString()}</div>
                                                         </td>
                                                         <td className="px-8 py-8">
                                                             <div className="text-[10px] font-semibold tracking-widest uppercase text-white/80">{order.customer_details.name}</div>
                                                             <div className="text-[8px] tracking-widest text-white/20 uppercase">{order.customer_details.email}</div>
                                                         </td>
-                                                        <td className="px-8 py-8 text-[11px] font-black text-white">$ {order.pricing.total.toLocaleString()}</td>
+                                                        <td className="px-8 py-8 text-[11px] font-black text-white">$ {(order.total_price || 0).toLocaleString()}</td>
                                                         <td className="px-8 py-8">
                                                             <span className={`text-[8px] font-black tracking-[0.3em] uppercase px-3 py-1 rounded-full border ${order.status === 'PENDING' ? 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5' :
                                                                 order.status === 'COMPLETED' ? 'border-green-500/20 text-green-500 bg-green-500/5' :
-                                                                    'border-white/20 text-white/40 bg-white/5'
+                                                                    order.status === 'CANCELLED' ? 'border-red-500/20 text-red-500 bg-red-500/5' :
+                                                                        'border-white/20 text-white/40 bg-white/5'
                                                                 }`}>
                                                                 {order.status}
                                                             </span>
@@ -215,15 +216,29 @@ export default function AdminDashboard() {
                                                         <td className="px-8 py-8 text-right">
                                                             <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 {order.status === 'PENDING' && (
-                                                                    <button
-                                                                        onClick={() => updateStatus(order.order_id, 'COMPLETED')}
-                                                                        className="p-3 bg-white text-black hover:scale-110 transition-transform rounded-sm"
-                                                                        title="Complete Circuit"
-                                                                    >
-                                                                        <CheckCircle size={14} />
-                                                                    </button>
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => updateStatus(order.id, 'COMPLETED')}
+                                                                            className="p-3 bg-white text-black hover:scale-110 transition-transform rounded-sm"
+                                                                            title="Accept Order"
+                                                                        >
+                                                                            <CheckCircle size={14} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => updateStatus(order.id, 'CANCELLED')}
+                                                                            className="p-3 bg-red-500/20 text-red-400 border border-red-500/20 hover:bg-red-500/40 hover:scale-110 transition-all rounded-sm"
+                                                                            title="Reject Order"
+                                                                        >
+                                                                            <XCircle size={14} />
+                                                                        </button>
+                                                                    </>
                                                                 )}
-                                                                <button className="p-3 bg-white/5 border border-white/10 hover:bg-white/20 rounded-sm">
+                                                                <button
+                                                                    onClick={() => order.customer_details?.payment_proof_url ? window.open(order.customer_details.payment_proof_url, '_blank') : alert('No Proof URL')}
+                                                                    className={`p-3 border rounded-sm transition-colors ${order.customer_details?.payment_proof_url ? 'bg-white/5 border-white/10 hover:bg-white/20 text-white' : 'bg-transparent border-white/5 text-white/10 cursor-not-allowed'
+                                                                        }`}
+                                                                    disabled={!order.customer_details?.payment_proof_url}
+                                                                >
                                                                     <Eye size={14} />
                                                                 </button>
                                                             </div>
