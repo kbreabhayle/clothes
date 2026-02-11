@@ -164,6 +164,16 @@ export default function Navbar() {
                             )}
                         </div>
 
+                        {user && (
+                            <Link
+                                href="/orders"
+                                className="md:hidden flex items-center text-foreground/50 hover:text-foreground transition-colors"
+                                title="Order History"
+                            >
+                                <Package size={18} strokeWidth={1.5} />
+                            </Link>
+                        )}
+
                         <button
                             onClick={handleCartClick}
                             className="flex items-center gap-2 text-foreground/50 hover:text-foreground transition-colors"
@@ -222,6 +232,16 @@ export default function Navbar() {
                                         {getThemeIcon()}
                                     </button>
                                 </div>
+
+                                {user && (
+                                    <Link
+                                        href="/orders"
+                                        className="text-2xl font-bold tracking-tighter uppercase text-foreground hover:italic transition-all"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Order History
+                                    </Link>
+                                )}
 
                                 {user ? (
                                     <button
